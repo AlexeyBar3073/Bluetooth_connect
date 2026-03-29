@@ -40,6 +40,8 @@ extern float lastSentSpeed;
 extern float lastSentRPM;
 // lastSentFuel: последняя отправленная величина fuel_level.
 extern float lastSentFuel;
+// odometerAccumulator: внутренний счётчик пробега для physicsTask.
+extern float odometerAccumulator;
 
 // lastSendTime: момент времени (millis), когда последний раз ушло сообщение data.
 extern unsigned long lastSendTime;
@@ -61,6 +63,11 @@ extern volatile bool isStreamingActive;
 
 // dataMutex: mutex, защищающий чтение/запись currentState и связанных глобальных данных.
 extern SemaphoreHandle_t dataMutex;
+
+// tripAccumulatorA: накопленный пробег поездки A (для physicsTask и сброса).
+extern float tripAccumulatorA;
+// tripAccumulatorB: накопленный пробег поездки B (для physicsTask и сброса).
+extern float tripAccumulatorB;
 
 // currentProgramState: состояние логики приложения/протокола.
 extern volatile ProgramState currentProgramState;

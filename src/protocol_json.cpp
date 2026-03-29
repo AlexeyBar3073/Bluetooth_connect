@@ -70,6 +70,30 @@ void sendMessageAck(const String& msgId) {
     Serial.println("Sent: " + jsonString);
 }
 
+// sendSettingsResponse:
+// Отправляет текущие настройки приложения в формате:
+// { "settings": { "fuel_tank_capacity": ..., "injector_count": ..., ... } }
+void sendSettingsResponse() {
+    if (!getConnectionState()) return;
+
+    // doc: JSON-буфер для сообщения с настройками.
+    JsonDocument doc;
+    
+    // settings: объект с текущими параметрами приложения.
+    JsonObject settings = doc["settings"].to<JsonObject>();
+    settings["fuel_tank_capacity"] = deviceSettings.fuel_tank_capacity;
+    settings["injector_count"] = deviceSettings.injector_count;
+    settings["injector_performance"] = deviceSettings.injector_performance;
+    settings["speed_sensor_signals"] = deviceSettings.speed_sensor_signals;
+    settings["initial_fuel"] = deviceSettings.initial_fuel;
+
+    // jsonString: итоговая строка для отправки в Bluetooth.
+    String jsonString;
+    serializeJson(doc, jsonString);
+    SerialBT.println(jsonString);
+    Serial.println("Sent: " + jsonString);
+}
+
 // sendCarData:
 // Отправляет большой пакет телеметрии в формате:
 // { "data": {...}, "settings_info": {...} }
@@ -210,6 +234,7 @@ void processIncomingJSON(const String& jsonString) {
             float new_odometer = settings["initial_odometer"].as<float>();
             if (xSemaphoreTake(dataMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
                 currentState.odometer = new_odometer;
+                odometerAccumulator = new_odometer;
                 xSemaphoreGive(dataMutex);
             }
             settingsUpdated = true;
@@ -244,7 +269,7 @@ void processIncomingJSON(const String& jsonString) {
             updateFuelLevel();
         }
 
-        sendJSONResponse("settings", "OK");
+        //sendJSONResponse("settings", "OK");
 
         if (currentProgramState != STATE_STREAMING_DATA)
             currentProgramState = STATE_IDLE;
@@ -260,6 +285,30 @@ void processIncomingJSON(const String& jsonString) {
             // Переходим в режим стриминга и запускаем вычисления
             currentProgramState = STATE_STREAMING_DATA;
             startAllCalculations();
+            return;
+        }
+
+        if (command == "GET_SETTINGS") {
+            // GET_SETTINGS: отправляем текущие настройки приложения
+            sendSettingsResponse();
+            return;
+        }
+
+        if (command == "CORRECT_ODO" || command == "correct_odo") {
+            // correct_odo: коррекция текущего одометра от Android
+            if (!doc["odo"].is<float>()) {
+                sendJSONResponse("correct_odo", "Invalid odo value");
+                return;
+            }
+
+            float new_odometer = doc["odo"].as<float>();
+            if (xSemaphoreTake(dataMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
+                currentState.odometer = new_odometer;
+                odometerAccumulator = new_odometer;
+                xSemaphoreGive(dataMutex);
+            }
+
+            sendJSONResponse("correct_odo", "OK");
             return;
         }
 
@@ -285,23 +334,23 @@ void processIncomingJSON(const String& jsonString) {
         }
 
         if (command == "RESET_TRIP_A") {
-            // RESET_TRIP_A: обнуляем счётчик пробега поездки A
+            // RESET_TRIP_A: обнуляем счётчик пробега поездки A и аккумулятор
             if (xSemaphoreTake(dataMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
                 currentState.trip_a = 0;
+                tripAccumulatorA = 0.0f;
                 xSemaphoreGive(dataMutex);
             }
-            sendJSONResponse("reset_trip_a", "OK");
             forceSendData = true;
             return;
         }
 
         if (command == "RESET_TRIP_B") {
-            // RESET_TRIP_B: обнуляем счётчик пробега поездки B
+            // RESET_TRIP_B: обнуляем счётчик пробега поездки B и аккумулятор
             if (xSemaphoreTake(dataMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
                 currentState.trip_b = 0;
+                tripAccumulatorB = 0.0f;
                 xSemaphoreGive(dataMutex);
             }
-            sendJSONResponse("reset_trip_b", "OK");
             forceSendData = true;
             return;
         }

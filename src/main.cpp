@@ -82,7 +82,9 @@ void setup() {
     Serial.println("  {\"command\":\"RESET_TRIP_A\"} - Reset trip A");
     Serial.println("  {\"command\":\"RESET_TRIP_B\"} - Reset trip B");
     Serial.println("  {\"command\":\"RESET_ALL_TRIPS\"} - Reset all trips");
-    Serial.println("=============================================\n");
+    Serial.println("  {\"command\":\"CORRECT_ODO\", \"odo\": 15234.5} - Correct odometer");
+    Serial.println("=============================================");
+
 
     // Создание FreeRTOS задач:
     // - Pinned to core: распределяем по ядрам ESP32 для предсказуемости.

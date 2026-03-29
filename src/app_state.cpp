@@ -42,6 +42,13 @@ float lastSentRPM = -1.0f;
 // lastSentFuel: последняя отправленная величина топлива (fuel_level).
 float lastSentFuel = -1.0f;
 
+// odometerAccumulator: внутренний накопленный одометр, с которого идет рассчет.
+float odometerAccumulator = 12450.7f;
+
+// tripAccumulatorA/B: внутренние накопленные пробеги для trip A/B.
+float tripAccumulatorA = 0.0f;
+float tripAccumulatorB = 0.0f;
+
 // lastSendTime: millis() последней отправки телеметрии data.
 unsigned long lastSendTime = 0;
 

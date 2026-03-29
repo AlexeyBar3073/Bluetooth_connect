@@ -26,11 +26,11 @@ void physicsTask(void* parameter) {
     unsigned long last_adc_time = millis();
 
     // accumulated_trip_a: накопленный пробег поездки A (км).
-    float accumulated_trip_a = 0.0f;
+    float& accumulated_trip_a = tripAccumulatorA;
     // accumulated_trip_b: накопленный пробег поездки B (км).
-    float accumulated_trip_b = 0.0f;
-    // accumulated_odometer: накопленный одометр (км).
-    float accumulated_odometer = 12450.7f;
+    float& accumulated_trip_b = tripAccumulatorB;
+    // accumulated_odometer: глобальный накопленный одометр (км) для коррекции odo.
+    float& accumulated_odometer = odometerAccumulator;
 
     // filtered_fuel_per_sec: сглаженный расход топлива в л/с (для расчёта л/100км).
     float filtered_fuel_per_sec = 0;
