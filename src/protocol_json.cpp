@@ -129,6 +129,7 @@ void sendCarData() {
     data["remaining_range"] = snapshot.remaining_range;
     data["rpm"] = snapshot.rpm;
     data["gear"] = snapshot.gear;
+    data["ecu_errors"] = "P0141";
 
     // settings_info: некоторые настройки и сервисные величины, которые полезны приложению.
     JsonObject settings_info = doc["settings_info"].to<JsonObject>();
